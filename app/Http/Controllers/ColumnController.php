@@ -1,14 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Column;
 use Illuminate\Http\Request;
 
 class ColumnController extends Controller
 {
     public function index() // GET /api/columns
     {
-        return response()->json(['message' => 'GET Columns - FUNCIONA']);
+       return response()->json(['message' => 'POST Column - FUNCIONA']);
     }
 
     public function store(Request $request) // POST /api/columns
