@@ -13,3 +13,7 @@ Route::apiResource('tasks', TaskController::class);
 Route::get('/test', function () {
     return response()->json(['message' => 'API funciona!']);
 });
+
+//Rutas personalizadas
+// GET /tableros/:id/tareas - Con filtros
+Route::get('/tableros/{id}/tareas', [BoardController::class, 'boardTasks']);
