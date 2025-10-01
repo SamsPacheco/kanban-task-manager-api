@@ -27,7 +27,7 @@ class BoardController extends Controller
         return response()->json(['message' => "PUT Board $id - FUNCIONA"]);
     }
 
-    public function destroy(string $id)     //public function destroy()  // DELETE /api/boards/{id}
+    public function destroy(string $id)      // DELETE /api/boards/{id}
     {
         return response()->json(['message' => "DELETE Board $id - FUNCIONA"]);
     }
