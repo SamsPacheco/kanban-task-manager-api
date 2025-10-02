@@ -7,14 +7,55 @@ use App\Models\Column;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @OA\Info(
+ *     title="Kanban API", 
+ *     version="1.0.0"
+ * )
+ * 
+ * @OA\Server(
+ *     url="http://localhost:8000/api",
+ *     description="Servidor Local"
+ * )
+ */
 class BoardController extends Controller
 {
+
+    /**
+     * @OA\Get(
+     *     path="/boards",
+     *     tags={"Boards"},
+     *     summary="Obtener todos los tableros",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de tableros obtenida exitosamente"
+     *     )
+     * )
+     */
     public function index() // GET /api/boards
     {
         $boards = Board::all();
         return response()->json($boards);
     }
-
+    /**
+     * @OA\Post(
+     *     path="/boards",
+     *     tags={"Boards"},
+     *     summary="Crear un nuevo tablero",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name"},
+     *             @OA\Property(property="name", type="string", example="Mi Proyecto"),
+     *             @OA\Property(property="description", type="string", example="Descripción del proyecto")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Tablero creado exitosamente"
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -56,7 +97,28 @@ class BoardController extends Controller
         });
     }
 
-
+    /**
+     * @OA\Get(
+     *     path="/boards/{id}",
+     *     tags={"Boards"},
+     *     summary="Obtener un tablero específico",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID del tablero",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tablero obtenido exitosamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Tablero no encontrado"
+     *     )
+     * )
+     */
     public function show(string $id) //GET /api/boards/{id} - Obtener tablero con columnas y tareas
     {
         $board = Board::with('columns.tasks')->find($id);
@@ -67,6 +129,36 @@ class BoardController extends Controller
 
         return response()->json($board);
     }
+
+    /**
+     * @OA\Put(
+     *     path="/boards/{id}",
+     *     tags={"Boards"},
+     *     summary="Actualizar un tablero",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID del tablero",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name"},
+     *             @OA\Property(property="name", type="string", example="Nombre Actualizado")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tablero actualizado exitosamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Tablero no encontrado"
+     *     )
+     * )
+     */
 
     public function update(Request $request, string $id) // PUT /api/boards/{id}
     {
@@ -84,6 +176,29 @@ class BoardController extends Controller
         return response()->json($board);
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/boards/{id}",
+     *     tags={"Boards"},
+     *     summary="Eliminar un tablero",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID del tablero",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tablero eliminado exitosamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Tablero no encontrado"
+     *     )
+     * )
+     */
+
     public function destroy(string $id)      // DELETE /api/boards/{id}
     {
         $board = Board::find($id);
@@ -96,7 +211,53 @@ class BoardController extends Controller
         return response()->json(['message' => 'Tablero eliminado correctamente']);
     }
 
-    // Nuevo endpoint: GET /tableros/:id/tareas - Con filtros
+    /**
+     * @OA\Get(
+     *     path="/boards/{id}/tasks",
+     *     tags={"Boards"},
+     *     summary="Obtener tareas de un tablero con filtros",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID del tablero",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="prioridad",
+     *         in="query",
+     *         description="Filtrar por prioridad",
+     *         @OA\Schema(type="string", enum={"alta", "media", "baja"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="porcentaje",
+     *         in="query",
+     *         description="Filtrar por porcentaje de progreso",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="vencimiento",
+     *         in="query",
+     *         description="Filtrar por fecha de vencimiento (YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="buscar",
+     *         in="query",
+     *         description="Buscar en título y descripción",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tareas obtenidas exitosamente"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Tablero no encontrado"
+     *     )
+     * )
+     */
+
     public function boardTasks(Request $request, string $id)
     {
         $board = Board::find($id);
@@ -129,6 +290,6 @@ class BoardController extends Controller
             });
         }
 
-        return response()->json($tasks->values()); 
+        return response()->json($tasks->values());
     }
 }
