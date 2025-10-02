@@ -15,56 +15,46 @@ class BoardController extends Controller
         return response()->json($boards);
     }
 
-    // public function store(Request $request) // POST /api/boards
-    // {
-    //     $request->validate([
-    //         'name' => 'required|string|max:255',
-    //     ]);
-
-    //     $board = Board::create($request->all());
-    //     return response()->json($board, 201); // 201 Created
-    // }
-
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'description' => 'nullable|string',
-    ]);
-
-    return DB::transaction(function () use ($validated) {
-        // 1. Crear el tablero
-        $board = Board::create([
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? '',
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
-        // 2. Crear las 3 columnas iniciales
-        $defaultColumns = [
-            ['name' => 'Pendiente', 'order' => 1, 'color' => '#ba181b'],
-            ['name' => 'En Progreso', 'order' => 2, 'color' => '#22577a'],
-            ['name' => 'Finalizado', 'order' => 3, 'color' => '#80ed99'],
-        ];
-
-        foreach ($defaultColumns as $col) {
-            Column::create([
-                'board_id' => $board->id,
-                'name' => $col['name'],
-                'order' => $col['order'],
-                'color' => $col['color'],
+        return DB::transaction(function () use ($validated) {
+            // 1. Crear el tablero
+            $board = Board::create([
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? '',
             ]);
-        }
 
-        // 3. Cargar las columnas en el tablero
-        $board->load('columns');
+            // 2. Crear las 3 columnas iniciales
+            $defaultColumns = [
+                ['name' => 'Pendiente', 'order' => 1, 'color' => '#ba181b'],
+                ['name' => 'En Progreso', 'order' => 2, 'color' => '#22577a'],
+                ['name' => 'Finalizado', 'order' => 3, 'color' => '#80ed99'],
+            ];
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Board created successfully with default columns',
-            'data' => $board
-        ], 201);
-    });
-}
+            foreach ($defaultColumns as $col) {
+                Column::create([
+                    'board_id' => $board->id,
+                    'name' => $col['name'],
+                    'order' => $col['order'],
+                    'color' => $col['color'],
+                ]);
+            }
+
+            // 3. Cargar las columnas en el tablero
+            $board->load('columns');
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Board created successfully with default columns',
+                'data' => $board
+            ], 201);
+        });
+    }
 
 
     public function show(string $id) //GET /api/boards/{id} - Obtener tablero con columnas y tareas
@@ -135,10 +125,10 @@ class BoardController extends Controller
             $searchTerm = strtolower($request->buscar);
             $tasks = $tasks->filter(function ($task) use ($searchTerm) {
                 return str_contains(strtolower($task->title), $searchTerm) ||
-                       str_contains(strtolower($task->description), $searchTerm);
+                    str_contains(strtolower($task->description), $searchTerm);
             });
         }
 
-        return response()->json($tasks->values()); // values() para reindexar el array
+        return response()->json($tasks->values()); 
     }
 }

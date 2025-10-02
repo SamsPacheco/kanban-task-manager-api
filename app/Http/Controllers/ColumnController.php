@@ -87,11 +87,7 @@ class ColumnController extends Controller
             'color' => 'nullable|string|max:20',
         ]);
 
-        // Evitar que se cambie el nombre de las columnas básicas (opcional)
-        $defaultColumns = ['Pendiente', 'En Progreso', 'Finalizado'];
-        if (in_array($column->name, $defaultColumns) && isset($validated['name'])) {
-            return response()->json(['message' => 'Default columns cannot be renamed'], 403);
-        }
+        
 
         $column->update($validated);
 
@@ -106,11 +102,6 @@ class ColumnController extends Controller
             return response()->json(['message' => 'Column not found'], 404);
         }
 
-        $defaultColumns = ['Pendiente', 'En Progreso', 'Finalizado'];
-        if (in_array($column->name, $defaultColumns)) {
-            return response()->json(['message' => 'Default columns cannot be deleted'], 403);
-        }
-
         $deletedOrder = $column->order;
         $boardId = $column->board_id;
 
@@ -123,25 +114,5 @@ class ColumnController extends Controller
 
         return response()->json(['message' => 'Column deleted successfully']);
     }
-
-    // TODO -> reorder columns
-    // public function reorder(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'board_id' => 'required|exists:boards,id',
-    //         'order' => 'required|array',
-    //         'order.*' => 'integer|exists:columns,id',
-    //     ]);
-
-    //     DB::transaction(function () use ($validated) {
-    //         foreach ($validated['order'] as $position => $id) {
-    //             Column::where('id', $id)
-    //                 ->where('board_id', $validated['board_id'])
-    //                 ->update(['order' => $position + 1]);
-    //         }
-    //     });
-
-    //     return response()->json(['message' => 'Columns reordered successfully']);
-    // }
 
 }
