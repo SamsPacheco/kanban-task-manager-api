@@ -11,5 +11,9 @@ Route::apiResource('columns', ColumnController::class);
 Route::apiResource('tasks', TaskController::class);
 
 Route::get('/test', function () {
-    return response()->json(['message' => 'API furula!']);
+    return response()->json(['message' => 'API funciona!']);
 });
+
+//Rutas personalizadas
+// GET /tableros/:id/tareas - Con filtros
+
