@@ -16,4 +16,4 @@ Route::get('/test', function () {
 
 //Rutas personalizadas
 // GET /tableros/:id/tareas - Con filtros
-Route::get('/tableros/{id}/tareas', [BoardController::class, 'boardTasks']);
+

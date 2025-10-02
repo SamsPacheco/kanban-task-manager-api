@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
-use App\Models\Column;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -36,6 +35,8 @@ class TaskController extends Controller
             'column_id' => 'required|exists:columns,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'assigned_to' => 'nullable|string|max:100',
+            'created_by' => 'nullable|string|max:100',
             'priority' => 'nullable|in:low,medium,high',
             'progress_percentage' => 'nullable|integer|min:0|max:100',
             'due_date' => 'nullable|date',
@@ -49,10 +50,12 @@ class TaskController extends Controller
                 'column_id' => $validated['column_id'],
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? '',
+                'assigned_to' => $validated['assigned_to'] ?? null,
+                'created_by' => $validated['created_by'] ?? 'Usuario',
                 'priority' => $validated['priority'] ?? 'medium',
                 'progress_percentage' => $validated['progress_percentage'] ?? 0,
                 'due_date' => $validated['due_date'] ?? null,
-                'order' => $lastOrder + 1, 
+                'order' => $lastOrder + 1,
             ]);
 
             $task->load('column.board');
@@ -76,54 +79,56 @@ class TaskController extends Controller
 
     public function update(Request $request, string $id) // PUT /api/tasks/{id}
     {
-    $validated = $request->validate([
-        'title' => 'sometimes|required|string|max:255',
-        'description' => 'nullable|string',
-        'priority' => 'sometimes|in:low,medium,high',
-        'progress_percentage' => 'sometimes|integer|min:0|max:100',
-        'due_date' => 'nullable|date',
-        'column_id' => 'sometimes|exists:columns,id',
-        'order' => 'sometimes|integer|min:0'
-    ]);
+        $validated = $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'assigned_to' => 'nullable|string|max:100', 
+            'created_by' => 'nullable|string|max:100',  
+            'priority' => 'sometimes|in:low,medium,high',
+            'progress_percentage' => 'sometimes|integer|min:0|max:100',
+            'due_date' => 'nullable|date',
+            'column_id' => 'sometimes|exists:columns,id',
+            'order' => 'sometimes|integer|min:0'
+        ]);
 
-    $task = Task::find($id);
-    
-    if (!$task) {
-        return response()->json([
-            'message' => 'Task not found'
-        ], 404);
-    }
+        $task = Task::find($id);
 
-    $task->update($validated);
-    
-    $task->load('column.board');
+        if (!$task) {
+            return response()->json([
+                'message' => 'Task not found'
+            ], 404);
+        }
 
-    return response()->json($task);
+        $task->update($validated);
+
+        $task->load('column.board');
+
+        return response()->json($task);
     }
 
     public function destroy(string $id) // DELETE /api/tasks/{id}
     {
-    $task = Task::find($id);
-    
-    if (!$task) {
-        return response()->json([
-            'message' => 'Task not found'
-        ], 404);
-    }
+        $task = Task::find($id);
 
-    return DB::transaction(function () use ($task) {
-        $columnId = $task->column_id;
-        $deletedOrder = $task->order;
-        
-        $task->delete();
-        
-        Task::where('column_id', $columnId)
-            ->where('order', '>', $deletedOrder)
-            ->decrement('order');
-        
-        return response()->json([
-            'message' => 'Task deleted successfully'
-        ], 200);
-    });
+        if (!$task) {
+            return response()->json([
+                'message' => 'Task not found'
+            ], 404);
+        }
+
+        return DB::transaction(function () use ($task) {
+            $columnId = $task->column_id;
+            $deletedOrder = $task->order;
+
+            $task->delete();
+
+            Task::where('column_id', $columnId)
+                ->where('order', '>', $deletedOrder)
+                ->decrement('order');
+
+            return response()->json([
+                'message' => 'Task deleted successfully'
+            ], 200);
+        });
     }
 }

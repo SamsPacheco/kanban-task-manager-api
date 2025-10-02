@@ -50,7 +50,7 @@ class BoardController extends Controller
         return response()->json($board);
     }
 
-    public function destroy(string $id) // DELETE /api/boards/{id}
+    public function destroy(string $id)      // DELETE /api/boards/{id}
     {
         $board = Board::find($id);
 
